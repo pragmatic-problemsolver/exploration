@@ -1,0 +1,41 @@
+package JsonProject.JsonProject;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Properties;
+
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
+
+public class ProducerJava {
+
+	public static void main(String[] args) throws IOException {
+
+		String bootstrapServers = "127.0.0.1:9092";
+		Properties properties = new Properties();
+		properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+		properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+		properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+		// creating the producer
+		KafkaProducer<String, String> first_producer = new KafkaProducer<>(properties);
+		Path pathOfFileToRead = Paths.get("./resources/invoice-hdr.json");
+		String kafkaMsg;
+		List<String> message = Files.readAllLines(pathOfFileToRead);
+		ListIterator<String> itr = message.listIterator();
+		while (itr.hasNext()) {
+			kafkaMsg = itr.next();
+			ProducerRecord<String, String> record = new ProducerRecord<String, String>("TpayTopic", kafkaMsg);
+			first_producer.send(record);
+		}
+		first_producer.flush();
+		first_producer.close();
+
+	}
+
+}
